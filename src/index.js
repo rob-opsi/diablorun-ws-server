@@ -16,39 +16,48 @@ const rooms = {};
 // Broadcast
 server.on('request', async (req, res) => {
   try {
-    const body = await new Promise(resolve => {
-      const chunks = [];
+    if (req.method === 'POST') {
+      const body = await new Promise(resolve => {
+        const chunks = [];
 
-      req
-        .on('data', chunk => chunks.push(chunk))
-        .on('end', () => resolve(Buffer.concat(chunks)));
-    });
+        req
+          .on('data', chunk => chunks.push(chunk))
+          .on('end', () => resolve(Buffer.concat(chunks)));
+      });
 
-    const { action, room, payload, secret, twitchMessages } = JSON.parse(body);
+      const { secret, webMessages, twitchMessages } = JSON.parse(body);
 
-    if (secret !== process.env.SECRET) {
-      res.end();
-      return;
-    }
-
-    if (action === 'broadcast' && room in rooms) {
-      for (const ws of Object.values(rooms[room])) {
-        ws.send(payload);
+      if (secret !== process.env.SECRET) {
+        res.end();
+        return;
       }
-    }
 
-    if (twitchMessages) {
-      sendTwitchMessages(twitchMessages);
+      // Broadcast web messages
+      if (webMessages) {
+        for (const { room, payload } of webMessages) {
+          if (room in rooms) {
+            for (const ws of Object.values(rooms[room])) {
+              ws.send(payload);
+            }
+          }
+        }
+      }
+
+      // Broadcast Twitch messages
+      if (twitchMessages) {
+        sendTwitchMessages(twitchMessages);
+      }
+    } else {
+      const out = {};
+
+      for (const room in rooms) {
+        out[room] = Object.keys(rooms[room]).length;
+      }
+
+      res.write(JSON.stringify(out));
     }
   } catch (err) {
-    const out = {};
-
-    for (const room in rooms) {
-      out[room] = Object.keys(rooms[room]).length;
-    }
-
-    //console.log(new Date(), err);
-    res.write(JSON.stringify(out));
+    console.log('[ERROR]', new Date(), err);
   }
 
   res.end();
@@ -82,7 +91,7 @@ wss.on('connection', async ws => {
         rooms[room][connectionId] = ws;
       }
     } catch (err) {
-      console.log(err);
+      console.log('[ERROR]', new Date(), err);
     }
   });
 
@@ -96,4 +105,4 @@ wss.on('connection', async ws => {
 runTwitchBot();
 setInterval(async () => await runTwitchBot(), 600000); // reload channels every 10 mins
 
-server.listen(process.env.PORT);
+server.listen(process.env.PORT, () => console.log(`diablorun-ws-server running on port ${process.env.PORT}`));

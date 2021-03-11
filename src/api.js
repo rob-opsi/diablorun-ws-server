@@ -1,47 +1,28 @@
-const https = require('https');
+const fetch = require('node-fetch');
 
-function get(path) {
-    return new Promise((resolve, reject) => {
-        const req = https.request({
-            hostname: process.env.API_HOSTNAME,
-            path,
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${process.env.SECRET}`
-            }
-        }, res => {
-            let data = '';
-            res.on('data', d => data += d);
-            res.on('end', () => resolve(JSON.parse(data)));
-        });
-
-        req.end();
-        req.on('error', e => reject(e));
+async function get(path) {
+    const res = await fetch(`http://${process.env.API_HOSTNAME}${path}`, {
+        path,
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${process.env.SECRET}`
+        }
     });
+
+    return await res.json();
 }
 
-function post(path, body) {
-    return new Promise((resolve, reject) => {
-        const content = JSON.stringify(body);
-        const req = https.request({
-            hostname: process.env.API_HOSTNAME,
-            path,
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Content-Length': content.length,
-                'Authorization': `Bearer ${process.env.SECRET}`
-            }
-        }, res => {
-            let data = '';
-            res.on('data', d => data += d);
-            res.on('end', () => resolve(JSON.parse(data)));
-        });
-
-        req.write(content);
-        req.end();
-        req.on('error', e => reject(e));
+async function post(path, body) {
+    const res = await fetch(`http://${process.env.API_HOSTNAME}`, {
+        path,
+        method: 'POST',
+        body,
+        headers: {
+            'Authorization': `Bearer ${process.env.SECRET}`
+        }
     });
+
+    return await res.json();
 }
 
 module.exports = { get, post };

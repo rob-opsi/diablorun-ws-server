@@ -56,7 +56,7 @@ async function runTwitchBot() {
       }
     });
   } catch (err) {
-    console.log(err);
+    console.log('[ERROR]', new Date(), err);
     return;
   }
 }
