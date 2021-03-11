@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 
 async function get(path) {
-    const res = await fetch(`http://${process.env.API_HOSTNAME}${path}`, {
+    const res = await fetch(process.env.API_HOSTNAME + path, {
         path,
         method: 'GET',
         headers: {
@@ -13,7 +13,7 @@ async function get(path) {
 }
 
 async function post(path, body) {
-    const res = await fetch(`http://${process.env.API_HOSTNAME}`, {
+    const res = await fetch(process.env.API_HOSTNAME, {
         path,
         method: 'POST',
         body,
