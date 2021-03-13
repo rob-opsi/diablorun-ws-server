@@ -13,12 +13,13 @@ async function get(path) {
 }
 
 async function post(path, body) {
-    const res = await fetch(process.env.API_URL, {
-        path,
+    console.log('POST', path, body);
+    const res = await fetch(process.env.API_URL + path, {
         method: 'POST',
-        body,
+        body: JSON.stringify(body),
         headers: {
-            'Authorization': `Bearer ${process.env.SECRET}`
+            'Authorization': `Bearer ${process.env.SECRET}`,
+            'Content-Type': 'application/json'
         }
     });
 

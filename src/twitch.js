@@ -52,7 +52,9 @@ async function runTwitchBot() {
         try {
           const messages = await api.post('/webhooks/twitch-command', { channel, message, from: tags.username });
           await sendTwitchMessages(messages);
-        } catch (err) {}
+        } catch (err) {
+          console.log('[ERROR]', new Date(), err);
+        }
       }
     });
   } catch (err) {
