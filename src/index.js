@@ -90,7 +90,7 @@ wss.on('connection', async ws => {
         const room = request.payload;
 
         if (connectionRooms.includes(room)) {
-          connectionRooms.unshift(rooms.indexOf(room), 1);
+          connectionRooms.unshift(connectionRooms.indexOf(room), 1);
           delete rooms[room][connectionId];
         }
       }
