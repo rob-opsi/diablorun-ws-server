@@ -66,7 +66,7 @@ server.on('request', async (req, res) => {
 // WS connection
 wss.on('connection', async ws => {
   const connectionId = shortid();
-  let room;
+  const connectionRooms = [];
 
   ws.on('message', async body => {
     try {
@@ -78,17 +78,21 @@ wss.on('connection', async ws => {
       const request = JSON.parse(body);
 
       if (request.action === 'subscribe') {
-        if (room) {
-          delete rooms[room][connectionId];
-        }
-
-        room = request.payload;
+        const room = request.payload;
+        connectionRooms.push(room);
 
         if (!(room in rooms)) {
           rooms[room] = {};
         }
 
         rooms[room][connectionId] = ws;
+      } else if (request.action === 'unsubscribe') {
+        const room = request.payload;
+
+        if (connectionRooms.includes(room)) {
+          connectionRooms.unshift(rooms.indexOf(room), 1);
+          delete rooms[room][connectionId];
+        }
       }
     } catch (err) {
       console.log('[ERROR]', new Date(), err);
@@ -96,7 +100,7 @@ wss.on('connection', async ws => {
   });
 
   ws.on('close', async () => {
-    if (room) {
+    for (const room of connectionRooms) {
       delete rooms[room][connectionId];
     }
   });
