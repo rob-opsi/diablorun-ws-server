@@ -2,7 +2,6 @@ const shortid = require('shortid');
 const http = require('http');
 const WebSocket = require('ws');
 const dotenv = require('dotenv');
-const { sendTwitchMessages, runTwitchBot } = require('./twitch');
 
 dotenv.config();
 
@@ -25,7 +24,7 @@ server.on('request', async (req, res) => {
           .on('end', () => resolve(Buffer.concat(chunks)));
       });
 
-      const { secret, webMessages, twitchMessages } = JSON.parse(body);
+      const { secret, webMessages } = JSON.parse(body);
 
       if (secret !== process.env.SECRET) {
         res.end();
@@ -41,11 +40,6 @@ server.on('request', async (req, res) => {
             }
           }
         }
-      }
-
-      // Broadcast Twitch messages
-      if (twitchMessages) {
-        sendTwitchMessages(twitchMessages);
       }
     } else {
       const out = {};
@@ -105,8 +99,5 @@ wss.on('connection', async ws => {
     }
   });
 });
-
-runTwitchBot();
-setInterval(async () => await runTwitchBot(), 600000); // reload channels every 10 mins
 
 server.listen(process.env.PORT, () => console.log(`diablorun-ws-server running on port ${process.env.PORT}`));
